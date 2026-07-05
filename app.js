@@ -1,202 +1,74 @@
-const VALID_USERNAME = "RAMCMedical";
-const VALID_PASSWORD = "RAMCMedical01";
-const SESSION_KEY = "ramc_logged_in";
-const STORAGE_KEY = "ramc_patient_records_v1";
-
-let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-let selectedId = null;
-
-const $ = (id) => document.getElementById(id);
-const fields = [
-  "name", "rank", "serviceNumber", "unit", "dob", "bloodGroup", "allergies",
-  "currentMedication", "emergencyContact", "priority", "complaint", "observations",
-  "history", "diagnosis", "treatmentGiven", "followUp", "notes", "recommendedTreatment"
-];
-
-function saveRecords() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  $("savedStatus").textContent = "Saved locally";
+:root {
+  --green: #173f2a;
+  --green-dark: #0c2418;
+  --gold: #c9a646;
+  --cream: #f6f1e6;
+  --ink: #18211d;
+  --muted: #68746e;
+  --line: #d8d0bd;
+  --danger: #9c1c1c;
+  --white: #ffffff;
+  font-family: Inter, Segoe UI, Arial, sans-serif;
 }
-
-function showApp() {
-  $("loginPage").classList.add("hidden");
-  $("appPage").classList.remove("hidden");
-  renderRecords();
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--cream); color: var(--ink); }
+.hidden { display: none !important; }
+.login-page {
+  min-height: 100vh; display: grid; place-items: center;
+  background: radial-gradient(circle at top, #315d43, var(--green-dark)); padding: 24px;
 }
-
-function showLogin() {
-  $("appPage").classList.add("hidden");
-  $("loginPage").classList.remove("hidden");
+.login-card {
+  width: min(760px, 100%); background: rgba(255,255,255,.96); border-radius: 20px;
+  padding: 34px; box-shadow: 0 24px 80px rgba(0,0,0,.35); border: 1px solid rgba(201,166,70,.45);
 }
-
-function isLoggedIn() {
-  return sessionStorage.getItem(SESSION_KEY) === "true";
+.logo-row { display: grid; grid-template-columns: 110px 1fr 110px; gap: 18px; align-items: center; text-align: center; }
+h1, h2, h3 { margin: 0; }
+.logo-row h1 { color: var(--green); font-size: clamp(1.6rem, 3vw, 2.5rem); }
+.logo-row p, .brand p, .ai-box p { color: var(--muted); margin: 6px 0 0; }
+.logo-box {
+  display: grid; place-items: center; min-height: 92px; padding: 10px;
+  border: 2px solid var(--gold); border-radius: 14px; color: var(--gold); background: var(--green);
+  font-weight: 800; text-transform: uppercase; letter-spacing: .05em; font-size: .9rem;
 }
-
-function clearForm() {
-  selectedId = null;
-  fields.forEach((field) => $(field).value = "");
-  $("priority").value = "Routine";
-  $("formTitle").textContent = "Add Patient Record";
-  $("savedStatus").textContent = "Not saved";
-  renderRecords();
+.logo-box span { font-size: .7rem; color: #efe0a6; }
+.logo-box.small { min-height: 54px; min-width: 58px; font-size: .75rem; }
+.login-form, .record-form { display: grid; gap: 14px; }
+.login-form { margin-top: 28px; }
+label { font-weight: 700; display: grid; gap: 6px; }
+input, textarea, select {
+  width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+  font: inherit; background: white; color: var(--ink);
 }
-
-function getFormData() {
-  const data = {};
-  fields.forEach((field) => data[field] = $(field).value.trim());
-  data.updatedAt = new Date().toISOString();
-  return data;
+textarea { resize: vertical; }
+button, .import-label {
+  border: 0; border-radius: 10px; padding: 12px 16px; font-weight: 800; cursor: pointer;
+  background: var(--green); color: white; text-align: center;
 }
-
-function setFormData(record) {
-  fields.forEach((field) => $(field).value = record[field] || "");
-  selectedId = record.id;
-  $("formTitle").textContent = `Editing: ${record.name || "Unnamed patient"}`;
-  $("savedStatus").textContent = `Last updated ${new Date(record.updatedAt).toLocaleString()}`;
-  renderRecords();
+button:hover, .import-label:hover { filter: brightness(1.08); }
+.secondary { background: #ece5d6; color: var(--green); border: 1px solid var(--line); }
+.danger { background: var(--danger); }
+.error { color: var(--danger); min-height: 20px; margin: 0; }
+.app-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 18px 24px; background: var(--green-dark); color: white; border-bottom: 4px solid var(--gold);
 }
-
-function renderRecords() {
-  const search = $("searchInput").value.toLowerCase();
-  const list = $("recordList");
-  list.innerHTML = "";
-
-  const filtered = records.filter((record) =>
-    JSON.stringify(record).toLowerCase().includes(search)
-  ).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<p class="status">No matching records.</p>';
-    return;
-  }
-
-  filtered.forEach((record) => {
-    const card = document.createElement("article");
-    card.className = `record-card ${record.id === selectedId ? "active" : ""}`;
-    card.innerHTML = `
-      <strong>${escapeHtml(record.name || "Unnamed patient")}</strong>
-      <span>${escapeHtml(record.rank || "No rank")} · ${escapeHtml(record.serviceNumber || "No service number")}</span><br>
-      <span>${escapeHtml(record.unit || "No unit")} · ${escapeHtml(record.priority || "Routine")}</span>
-    `;
-    card.addEventListener("click", () => setFormData(record));
-    list.appendChild(card);
-  });
+.brand, .header-actions { display: flex; align-items: center; gap: 14px; }
+.toolbar {
+  display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; padding: 16px 24px; background: #fffaf0; border-bottom: 1px solid var(--line);
 }
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (char) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-  }[char]));
+.layout { display: grid; grid-template-columns: 360px 1fr; gap: 18px; padding: 18px 24px 32px; }
+.records-panel, .editor-panel { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 10px 30px rgba(23,63,42,.08); }
+.record-list { display: grid; gap: 10px; margin-top: 14px; }
+.record-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; background: #fffdf8; }
+.record-card.active { border-color: var(--gold); box-shadow: inset 4px 0 0 var(--gold); }
+.record-card strong { display: block; color: var(--green); }
+.record-card span { color: var(--muted); font-size: .9rem; }
+.form-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.status { color: var(--muted); font-size: .9rem; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.ai-box { display: grid; gap: 12px; border: 1px solid var(--gold); border-radius: 14px; padding: 14px; background: #fff9e8; }
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 880px) {
+  .logo-row, .layout, .toolbar, .grid { grid-template-columns: 1fr; }
+  .app-header { align-items: flex-start; flex-direction: column; }
 }
-
-function generateRecommendation() {
-  const data = getFormData();
-  const redFlags = [];
-  const text = `${data.complaint} ${data.observations} ${data.history} ${data.diagnosis}`.toLowerCase();
-
-  if (/chest pain|shortness of breath|sob|collapse|unconscious|stroke|seizure|anaphylaxis|severe bleeding|suicidal|overdose/.test(text)) {
-    redFlags.push("Possible red-flag presentation: urgent senior clinical review / emergency pathway required.");
-  }
-  if (/fever|temp|pyrexia|infection/.test(text)) redFlags.push("Check full observations, sepsis risk, hydration status, and infection source.");
-  if (/head injury|concussion|loss of consciousness/.test(text)) redFlags.push("Use head-injury protocol and consider evacuation/escalation if symptoms worsen.");
-  if (/pain|sprain|strain|fracture|wound|laceration/.test(text)) redFlags.push("Assess pain, neurovascular status, wound contamination, tetanus status, and imaging need.");
-  if (/allerg/.test(data.allergies.toLowerCase()) && !/nkda|none/.test(data.allergies.toLowerCase())) {
-    redFlags.push(`Allergy warning: confirm allergy details before any medication is considered. Recorded allergies: ${data.allergies}.`);
-  }
-
-  const recommendation = [
-    "CLINICAL DECISION-SUPPORT DRAFT — REVIEW REQUIRED",
-    "",
-    `Patient: ${data.name || "Not entered"} | Rank: ${data.rank || "Not entered"} | Priority: ${data.priority || "Routine"}`,
-    "",
-    "Immediate actions:",
-    "• Confirm identity, consent, allergies, current medication, and relevant medical history.",
-    "• Record full observations and repeat if condition changes.",
-    "• Escalate to an authorised clinician for diagnosis, prescription, and fitness-for-duty decisions.",
-    "",
-    "Suggested plan to consider:",
-    "• Provide appropriate first aid/supportive care within local protocol and scope of practice.",
-    "• Consider rest, hydration, wound care, immobilisation, monitoring, or referral depending on assessment.",
-    "• Do not issue prescription-only medication unless authorised by a qualified prescriber and local policy.",
-    "• Arrange follow-up, safety-net advice, and clear return precautions.",
-    "",
-    "Risk prompts:",
-    ...(redFlags.length ? redFlags.map((item) => `• ${item}`) : ["• No specific red-flag keywords detected from the entered text; clinical judgement still required."]),
-    "",
-    "Prescription note:",
-    "• Medication choice, dose, contraindications, and interactions must be confirmed by an authorised prescriber. This system intentionally does not generate automatic prescriptions."
-  ].join("\n");
-
-  $("recommendedTreatment").value = recommendation;
-}
-
-$("loginForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const username = $("username").value;
-  const password = $("password").value;
-  if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-    sessionStorage.setItem(SESSION_KEY, "true");
-    $("loginError").textContent = "";
-    showApp();
-  } else {
-    $("loginError").textContent = "Incorrect username or password.";
-  }
-});
-
-$("logoutBtn").addEventListener("click", () => {
-  sessionStorage.removeItem(SESSION_KEY);
-  showLogin();
-});
-
-$("recordForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const data = getFormData();
-  if (!data.name) return alert("Name is required.");
-
-  if (selectedId) {
-    records = records.map((record) => record.id === selectedId ? { ...record, ...data } : record);
-  } else {
-    selectedId = crypto.randomUUID();
-    records.push({ id: selectedId, createdAt: new Date().toISOString(), ...data });
-  }
-  saveRecords();
-  renderRecords();
-  const saved = records.find((record) => record.id === selectedId);
-  if (saved) setFormData(saved);
-});
-
-$("deleteBtn").addEventListener("click", () => {
-  if (!selectedId) return alert("Select a record to delete.");
-  if (!confirm("Delete this record? This cannot be undone.")) return;
-  records = records.filter((record) => record.id !== selectedId);
-  saveRecords();
-  clearForm();
-});
-
-$("clearBtn").addEventListener("click", clearForm);
-$("newRecordBtn").addEventListener("click", clearForm);
-$("searchInput").addEventListener("input", renderRecords);
-$("recommendBtn").addEventListener("click", generateRecommendation);
-
-$("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(records, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `ramc-records-${new Date().toISOString().slice(0,10)}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-$("importFile").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const imported = JSON.parse(await file.text());
-  if (!Array.isArray(imported)) return alert("Invalid records file.");
-  records = imported;
-  saveRecords();
-  clearForm();
-});
-
-if (isLoggedIn()) showApp(); else showLogin();
