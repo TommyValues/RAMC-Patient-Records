@@ -1,0 +1,50 @@
+
+/* Appointment booking controls */
+.appointment-controls {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: var(--gold-2);
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold);
+}
+
+.appointment-control-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.appointment-controls label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.appointment-controls select,
+.appointment-controls textarea {
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .appointment-control-grid {
+    grid-template-columns: 1fr;
+  }
+}

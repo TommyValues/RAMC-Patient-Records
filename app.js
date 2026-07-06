@@ -110,34 +110,18 @@ function generateRoleplayTreatmentAdvice(){
   return a;
 }
 
-appointmentsPageBtn.addEventListener("click", async () => { appointmentsPage.classList.remove("hidden"); await loadAppointments(); });
 async function loadAppointments() {
-  if (!appointmentsList || !appointmentCount) return;
-
-  appointmentsPage.classList.remove("hidden");
-  appointmentsList.innerHTML = "<p style='padding:20px;'>Loading appointments...</p>";
+  if (!appointmentCount) return;
 
   try {
     const response = await fetch(APPOINTMENTS_CSV_URL + "&cacheBust=" + Date.now(), {
       cache: "no-store"
     });
 
-    if (!response.ok) {
-      throw new Error("Could not load appointment CSV.");
-    }
+    if (!response.ok) throw new Error("Could not load appointment CSV.");
 
-    const csvText = await response.text();
-    const rows = parseCSV(csvText)
+    const rows = parseCSV(await response.text())
       .map((row) => row.map((cell) => String(cell || "").trim()));
-
-    if (rows.length <= 1) {
-      appointmentCount.textContent = "(0)";
-      appointmentsList.innerHTML =
-        "<div class='empty-state'><h3>No appointments found</h3><p>No Google Form responses are currently listed.</p></div>";
-      return;
-    }
-
-    const headers = rows[0];
 
     const bookings = rows.slice(1).filter((row) => {
       const timestamp = row[0] || "";
@@ -146,59 +130,9 @@ async function loadAppointments() {
     });
 
     appointmentCount.textContent = `(${bookings.length})`;
-    appointmentsList.innerHTML = "";
-
-    if (bookings.length === 0) {
-      appointmentsList.innerHTML =
-        "<div class='empty-state'><h3>No appointments found</h3><p>No Google Form responses are currently listed.</p></div>";
-      return;
-    }
-
-    bookings.forEach((row, index) => {
-      const card = document.createElement("article");
-      card.className = "record-card";
-
-      const nonEmptyAnswers = row.slice(1).filter((cell) => cell !== "");
-      const title = nonEmptyAnswers[0] || `Appointment ${index + 1}`;
-      const date = row[0] || "No timestamp";
-
-      card.innerHTML = `
-        <div class="record-main">
-          <div class="record-title-row">
-            <div>
-              <h3>${escapeHtml(title)}</h3>
-              <p class="record-rank">${escapeHtml(date)}</p>
-            </div>
-            <span class="record-status">Booking</span>
-          </div>
-
-          <div class="record-summary hidden"></div>
-        </div>
-
-        <div class="record-actions">
-          <button class="btn btn-secondary open-appointment-btn" type="button">Open</button>
-        </div>
-      `;
-
-      const summary = card.querySelector(".record-summary");
-
-      summary.innerHTML = headers.map((header, i) => {
-        const question = header || `Question ${i + 1}`;
-        const answer = row[i] || "";
-        return `<p><strong>${escapeHtml(question)}:</strong> ${escapeHtml(answer)}</p>`;
-      }).join("");
-
-      card.querySelector(".open-appointment-btn").addEventListener("click", () => {
-        summary.classList.toggle("hidden");
-      });
-
-      appointmentsList.appendChild(card);
-    });
   } catch (error) {
     console.error(error);
     appointmentCount.textContent = "(0)";
-    appointmentsList.innerHTML =
-      "<div class='empty-state'><h3>Could not load appointments</h3><p>Check that the Google Sheet is published as CSV and that the correct response sheet was selected.</p></div>";
   }
 }
 

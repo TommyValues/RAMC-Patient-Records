@@ -37,7 +37,7 @@
   <main class="app-container">
     <section class="toolbar">
       <div class="search-wrapper"><input id="searchInput" type="search" placeholder="Search by name, service number, rank, unit..." /></div>
-      <button id="appointmentsPageBtn" class="btn btn-secondary">Appointment Bookings <span id="appointmentCount">(0)</span></button>
+      <a id="appointmentsPageBtn" class="btn btn-secondary" href="appointments.html">Appointment Bookings <span id="appointmentCount">(0)</span></a>
       <button id="newRecordBtn" class="btn btn-primary">+ New Medical Record</button>
     </section>
     <section class="stats-grid">
@@ -49,10 +49,6 @@
       <div class="panel-header"><div><h3>Medical Records</h3><p>Search, review and edit stored records</p></div></div>
       <div id="recordsList" class="records-list"></div>
       <div id="emptyState" class="empty-state hidden"><h3>No records found</h3><p>Create a new record or change your search.</p></div>
-    </section>
-    <section id="appointmentsPage" class="panel hidden" style="margin-top:22px;">
-      <div class="panel-header"><div><h3>Appointment Bookings</h3><p>Google Forms appointment responses. Click Open to view a response.</p></div></div>
-      <div id="appointmentsList" class="records-list"></div>
     </section>
   </main>
 </section>

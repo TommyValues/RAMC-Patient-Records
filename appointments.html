@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointment Bookings | RAMC Patient Record System</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <section id="appointmentsLoginGuard" class="page app-page">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="mini-logo">RAMC</div>
+        <div>
+          <h2>Patient Record System</h2>
+          <p>Appointment Bookings</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <a class="btn btn-secondary" href="index.html">← Medical Records</a>
+        <span id="loggedInUser" class="user-badge">RAMCMedical</span>
+        <button id="logoutBtn" class="btn btn-danger" type="button">Log Out</button>
+      </div>
+    </header>
+
+    <main class="app-container">
+      <section class="toolbar">
+        <div>
+          <h1 style="margin:0 0 6px;">Appointment Bookings <span id="appointmentCount">(0)</span></h1>
+          <p style="margin:0;color:var(--muted);">Google Forms appointment responses</p>
+        </div>
+        <button id="refreshAppointmentsBtn" class="btn btn-primary" type="button">Refresh Bookings</button>
+      </section>
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <span>Total Bookings</span>
+          <strong id="totalBookings">0</strong>
+        </div>
+        <div class="stat-card">
+          <span>Data Source</span>
+          <strong style="font-size:18px;">Google Forms</strong>
+        </div>
+        <div class="stat-card">
+          <span>System Status</span>
+          <strong id="bookingStatus" class="status-online">Loading</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h3>Appointment Responses</h3>
+            <p>Click Open to view the full response.</p>
+          </div>
+        </div>
+
+        <div id="appointmentsList" class="records-list">
+          <p style="padding:20px;">Loading appointments...</p>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <script src="appointments.js"></script>
+</body>
+</html>
