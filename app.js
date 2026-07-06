@@ -1,104 +1,43 @@
 "use strict";
 
-/* Remove old ?username=&password= from URL */
-if (window.location.search) {
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
+if (window.location.search) window.history.replaceState({}, document.title, window.location.pathname);
 
-/* Login */
 const VALID_USERNAME = "RAMCMedical";
 const VALID_PASSWORD = "RAMCMedical01";
-
 const RECORDS_STORAGE_KEY = "ramcMedicalRecords";
 const SESSION_STORAGE_KEY = "ramcMedicalLoggedIn";
+const APPOINTMENTS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5CrXy-JFTbEFqA9ArJJ3SoW2Di_PK-4cH9Cx1VxFJW9uY1LA_rwMoIRT__DDYOMezlc8DpI86fkTf/pub?output=csv";
 
-/* Pages */
-const loginPage = document.getElementById("loginPage");
-const appPage = document.getElementById("appPage");
-
-/* Login elements */
-const loginForm = document.getElementById("loginForm");
-const usernameInput = document.getElementById("username");
-const passwordInput = document.getElementById("password");
-const loginError = document.getElementById("loginError");
-const loggedInUser = document.getElementById("loggedInUser");
-const logoutBtn = document.getElementById("logoutBtn");
-
-/* Main elements */
-const searchInput = document.getElementById("searchInput");
-const newRecordBtn = document.getElementById("newRecordBtn");
-const recordsList = document.getElementById("recordsList");
-const emptyState = document.getElementById("emptyState");
-const totalRecords = document.getElementById("totalRecords");
-const displayedRecords = document.getElementById("displayedRecords");
-
-/* Modal */
-const recordModal = document.getElementById("recordModal");
-const modalTitle = document.getElementById("modalTitle");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const recordForm = document.getElementById("recordForm");
-
-/* Form fields */
-const recordId = document.getElementById("recordId");
-const patientName = document.getElementById("patientName");
-const rank = document.getElementById("rank");
-const serviceNumber = document.getElementById("serviceNumber");
-const unit = document.getElementById("unit");
-const dateOfBirth = document.getElementById("dateOfBirth");
-const bloodGroup = document.getElementById("bloodGroup");
-const encounterDate = document.getElementById("encounterDate");
-const medicalCategory = document.getElementById("medicalCategory");
-const presentingComplaint = document.getElementById("presentingComplaint");
-const symptoms = document.getElementById("symptoms");
-const medicalHistory = document.getElementById("medicalHistory");
-const allergies = document.getElementById("allergies");
-const currentMedications = document.getElementById("currentMedications");
-const temperature = document.getElementById("temperature");
-const heartRate = document.getElementById("heartRate");
-const bloodPressure = document.getElementById("bloodPressure");
-const respiratoryRate = document.getElementById("respiratoryRate");
-const oxygenSaturation = document.getElementById("oxygenSaturation");
-const painScore = document.getElementById("painScore");
-const clinicalAssessment = document.getElementById("clinicalAssessment");
-const clinicalNotes = document.getElementById("clinicalNotes");
-const recommendedTreatment = document.getElementById("recommendedTreatment");
-const generateTreatmentBtn = document.getElementById("generateTreatmentBtn");
+const $ = (id) => document.getElementById(id);
+const loginPage = $("loginPage"), appPage = $("appPage"), loginForm = $("loginForm");
+const usernameInput = $("username"), passwordInput = $("password"), loginError = $("loginError"), loggedInUser = $("loggedInUser"), logoutBtn = $("logoutBtn");
+const searchInput = $("searchInput"), newRecordBtn = $("newRecordBtn"), recordsList = $("recordsList"), emptyState = $("emptyState"), totalRecords = $("totalRecords"), displayedRecords = $("displayedRecords");
+const appointmentsPageBtn = $("appointmentsPageBtn"), appointmentCount = $("appointmentCount"), appointmentsPage = $("appointmentsPage"), appointmentsList = $("appointmentsList");
+const recordModal = $("recordModal"), modalTitle = $("modalTitle"), closeModalBtn = $("closeModalBtn"), cancelBtn = $("cancelBtn"), recordForm = $("recordForm");
+const recordId = $("recordId"), patientName = $("patientName"), rank = $("rank"), serviceNumber = $("serviceNumber"), unit = $("unit"), dateOfBirth = $("dateOfBirth"), bloodGroup = $("bloodGroup");
+const encounterDate = $("encounterDate"), medicalCategory = $("medicalCategory"), presentingComplaint = $("presentingComplaint"), symptoms = $("symptoms"), medicalHistory = $("medicalHistory"), allergies = $("allergies"), currentMedications = $("currentMedications");
+const temperature = $("temperature"), heartRate = $("heartRate"), bloodPressure = $("bloodPressure"), respiratoryRate = $("respiratoryRate"), oxygenSaturation = $("oxygenSaturation"), painScore = $("painScore");
+const clinicalAssessment = $("clinicalAssessment"), clinicalNotes = $("clinicalNotes"), recommendedTreatment = $("recommendedTreatment"), generateTreatmentBtn = $("generateTreatmentBtn");
 
 let records = loadRecords();
 
-/* Start */
 document.addEventListener("DOMContentLoaded", () => {
-  if (sessionStorage.getItem(SESSION_STORAGE_KEY) === "true") {
-    showApplication();
-  } else {
-    showLogin();
-  }
-
+  sessionStorage.getItem(SESSION_STORAGE_KEY) === "true" ? showApplication() : showLogin();
   setDefaultEncounterDate();
   renderRecords();
+  loadAppointments();
 });
 
-/* Login */
-loginForm.addEventListener("submit", function (event) {
+loginForm.addEventListener("submit", (event) => {
   event.preventDefault();
-
-  const enteredUsername = usernameInput.value.trim();
-  const enteredPassword = passwordInput.value;
-
-  if (
-    enteredUsername === VALID_USERNAME &&
-    enteredPassword === VALID_PASSWORD
-  ) {
+  if (usernameInput.value.trim() === VALID_USERNAME && passwordInput.value === VALID_PASSWORD) {
     sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
-
     loginError.textContent = "";
     passwordInput.value = "";
-
     window.history.replaceState({}, document.title, window.location.pathname);
-
     showApplication();
     renderRecords();
+    loadAppointments();
   } else {
     loginError.textContent = "Invalid username or password.";
     passwordInput.value = "";
@@ -106,374 +45,103 @@ loginForm.addEventListener("submit", function (event) {
   }
 });
 
-function showLogin() {
-  loginPage.classList.remove("hidden");
-  appPage.classList.add("hidden");
-}
+function showLogin(){ loginPage.classList.remove("hidden"); appPage.classList.add("hidden"); }
+function showApplication(){ loginPage.classList.add("hidden"); appPage.classList.remove("hidden"); loggedInUser.textContent = VALID_USERNAME; }
+logoutBtn.addEventListener("click", () => { sessionStorage.removeItem(SESSION_STORAGE_KEY); closeModal(); showLogin(); });
 
-function showApplication() {
-  loginPage.classList.add("hidden");
-  appPage.classList.remove("hidden");
-  loggedInUser.textContent = VALID_USERNAME;
-}
+function loadRecords(){ try { return JSON.parse(localStorage.getItem(RECORDS_STORAGE_KEY)) || []; } catch { return []; } }
+function saveRecords(){ localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(records)); }
 
-logoutBtn.addEventListener("click", () => {
-  sessionStorage.removeItem(SESSION_STORAGE_KEY);
-  showLogin();
-});
-
-/* Storage */
-function loadRecords() {
-  try {
-    return JSON.parse(localStorage.getItem(RECORDS_STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecords() {
-  localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(records));
-}
-
-/* Search */
 searchInput.addEventListener("input", renderRecords);
-
-function getFilteredRecords() {
-  const query = searchInput.value.trim().toLowerCase();
-
-  if (!query) return records;
-
-  return records.filter((record) => {
-    return [
-      record.patientName,
-      record.rank,
-      record.serviceNumber,
-      record.unit,
-      record.presentingComplaint,
-      record.symptoms,
-      record.clinicalAssessment
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(query);
-  });
+function getFilteredRecords(){
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) return records;
+  return records.filter(r => [r.patientName,r.rank,r.serviceNumber,r.unit,r.presentingComplaint,r.symptoms,r.clinicalAssessment].join(" ").toLowerCase().includes(q));
 }
-
-/* Render */
-function renderRecords() {
+function renderRecords(){
   const filtered = getFilteredRecords();
-
   recordsList.innerHTML = "";
   totalRecords.textContent = records.length;
   displayedRecords.textContent = filtered.length;
-
-  if (filtered.length === 0) {
-    emptyState.classList.remove("hidden");
-    return;
-  }
-
-  emptyState.classList.add("hidden");
-
-  filtered.forEach((record) => {
+  emptyState.classList.toggle("hidden", filtered.length !== 0);
+  filtered.slice().sort((a,b)=>new Date(b.updatedAt||0)-new Date(a.updatedAt||0)).forEach(record => {
     const card = document.createElement("article");
     card.className = "record-card";
-
-    card.innerHTML = `
-      <div class="record-main">
-        <div class="record-title-row">
-          <div>
-            <h3>${escapeHtml(record.patientName)}</h3>
-            <p class="record-rank">${escapeHtml(record.rank)}</p>
-          </div>
-          <span class="record-status">Active Record</span>
-        </div>
-
-        <div class="record-meta">
-          <div>
-            <span>Service Number</span>
-            <strong>${escapeHtml(record.serviceNumber || "Not recorded")}</strong>
-          </div>
-          <div>
-            <span>Unit</span>
-            <strong>${escapeHtml(record.unit || "Not recorded")}</strong>
-          </div>
-          <div>
-            <span>Updated</span>
-            <strong>${escapeHtml(formatDate(record.updatedAt))}</strong>
-          </div>
-        </div>
-
-        <div class="record-summary">
-          <span>Complaint</span>
-          <p>${escapeHtml(record.presentingComplaint || "No complaint recorded.")}</p>
-        </div>
-      </div>
-
-      <div class="record-actions">
-        <button class="btn btn-secondary edit-record-btn" data-id="${record.id}">
-          Edit
-        </button>
-        <button class="btn btn-danger delete-record-btn" data-id="${record.id}">
-          Delete
-        </button>
-      </div>
-    `;
-
+    card.innerHTML = `<div class="record-main"><div class="record-title-row"><div><h3>${escapeHtml(record.patientName)}</h3><p class="record-rank">${escapeHtml(record.rank)}</p></div><span class="record-status">Active Record</span></div><div class="record-meta"><div><span>Service Number</span><strong>${escapeHtml(record.serviceNumber || "Not recorded")}</strong></div><div><span>Unit</span><strong>${escapeHtml(record.unit || "Not recorded")}</strong></div><div><span>Updated</span><strong>${escapeHtml(formatDate(record.updatedAt))}</strong></div></div><div class="record-summary"><span>Complaint</span><p>${escapeHtml(record.presentingComplaint || "No complaint recorded.")}</p></div></div><div class="record-actions"><button class="btn btn-secondary edit-record-btn" data-id="${escapeHtml(record.id)}" type="button">Edit</button><button class="btn btn-danger delete-record-btn" data-id="${escapeHtml(record.id)}" type="button">Delete</button></div>`;
     recordsList.appendChild(card);
   });
 }
 
-/* New record */
-newRecordBtn.addEventListener("click", () => {
-  recordForm.reset();
-  recordId.value = "";
-  modalTitle.textContent = "New Medical Record";
-  setDefaultEncounterDate();
-  openModal();
-});
-
-/* Edit/delete */
-recordsList.addEventListener("click", (event) => {
-  const editBtn = event.target.closest(".edit-record-btn");
-  const deleteBtn = event.target.closest(".delete-record-btn");
-
-  if (editBtn) openEditRecord(editBtn.dataset.id);
-  if (deleteBtn) deleteRecord(deleteBtn.dataset.id);
-});
-
-function openEditRecord(id) {
-  const record = records.find((r) => r.id === id);
-  if (!record) return;
-
+newRecordBtn.addEventListener("click", () => { recordForm.reset(); recordId.value = ""; modalTitle.textContent = "New Medical Record"; setDefaultEncounterDate(); openModal(); });
+recordsList.addEventListener("click", e => { const edit=e.target.closest(".edit-record-btn"), del=e.target.closest(".delete-record-btn"); if(edit) openEditRecord(edit.dataset.id); if(del) deleteRecord(del.dataset.id); });
+function openEditRecord(id){
+  const r = records.find(x => x.id === id); if (!r) return;
   modalTitle.textContent = "Edit Medical Record";
-
-  recordId.value = record.id;
-  patientName.value = record.patientName || "";
-  rank.value = record.rank || "";
-  serviceNumber.value = record.serviceNumber || "";
-  unit.value = record.unit || "";
-  dateOfBirth.value = record.dateOfBirth || "";
-  bloodGroup.value = record.bloodGroup || "";
-  encounterDate.value = record.encounterDate || "";
-  medicalCategory.value = record.medicalCategory || "";
-  presentingComplaint.value = record.presentingComplaint || "";
-  symptoms.value = record.symptoms || "";
-  medicalHistory.value = record.medicalHistory || "";
-  allergies.value = record.allergies || "";
-  currentMedications.value = record.currentMedications || "";
-  temperature.value = record.temperature || "";
-  heartRate.value = record.heartRate || "";
-  bloodPressure.value = record.bloodPressure || "";
-  respiratoryRate.value = record.respiratoryRate || "";
-  oxygenSaturation.value = record.oxygenSaturation || "";
-  painScore.value = record.painScore || "";
-  clinicalAssessment.value = record.clinicalAssessment || "";
-  clinicalNotes.value = record.clinicalNotes || "";
-  recommendedTreatment.value = record.recommendedTreatment || "";
-
+  recordId.value = r.id; patientName.value = r.patientName || ""; rank.value = r.rank || ""; serviceNumber.value = r.serviceNumber || ""; unit.value = r.unit || ""; dateOfBirth.value = r.dateOfBirth || ""; bloodGroup.value = r.bloodGroup || "";
+  encounterDate.value = r.encounterDate || ""; medicalCategory.value = r.medicalCategory || ""; presentingComplaint.value = r.presentingComplaint || ""; symptoms.value = r.symptoms || ""; medicalHistory.value = r.medicalHistory || ""; allergies.value = r.allergies || ""; currentMedications.value = r.currentMedications || "";
+  temperature.value = r.temperature || ""; heartRate.value = r.heartRate || ""; bloodPressure.value = r.bloodPressure || ""; respiratoryRate.value = r.respiratoryRate || ""; oxygenSaturation.value = r.oxygenSaturation || ""; painScore.value = r.painScore || "";
+  clinicalAssessment.value = r.clinicalAssessment || ""; clinicalNotes.value = r.clinicalNotes || ""; recommendedTreatment.value = r.recommendedTreatment || "";
   openModal();
 }
-
-function deleteRecord(id) {
-  if (!confirm("Delete this record?")) return;
-
-  records = records.filter((record) => record.id !== id);
-  saveRecords();
-  renderRecords();
-}
-
-/* Save */
-recordForm.addEventListener("submit", (event) => {
+function deleteRecord(id){ if (!confirm("Delete this record?")) return; records = records.filter(r => r.id !== id); saveRecords(); renderRecords(); }
+recordForm.addEventListener("submit", event => {
   event.preventDefault();
-
-  const existingId = recordId.value;
-  const now = new Date().toISOString();
-
-  const record = {
-    id: existingId || createId(),
-    patientName: patientName.value.trim(),
-    rank: rank.value.trim(),
-    serviceNumber: serviceNumber.value.trim(),
-    unit: unit.value.trim(),
-    dateOfBirth: dateOfBirth.value,
-    bloodGroup: bloodGroup.value,
-    encounterDate: encounterDate.value,
-    medicalCategory: medicalCategory.value.trim(),
-    presentingComplaint: presentingComplaint.value.trim(),
-    symptoms: symptoms.value.trim(),
-    medicalHistory: medicalHistory.value.trim(),
-    allergies: allergies.value.trim(),
-    currentMedications: currentMedications.value.trim(),
-    temperature: temperature.value.trim(),
-    heartRate: heartRate.value.trim(),
-    bloodPressure: bloodPressure.value.trim(),
-    respiratoryRate: respiratoryRate.value.trim(),
-    oxygenSaturation: oxygenSaturation.value.trim(),
-    painScore: painScore.value.trim(),
-    clinicalAssessment: clinicalAssessment.value.trim(),
-    clinicalNotes: clinicalNotes.value.trim(),
-    recommendedTreatment: recommendedTreatment.value.trim(),
-    updatedAt: now
-  };
-
-  if (!record.patientName || !record.rank) {
-    alert("Please enter at least Name and Rank.");
-    return;
-  }
-
-  if (existingId) {
-    records = records.map((r) => (r.id === existingId ? record : r));
-  } else {
-    records.push(record);
-  }
-
-  saveRecords();
-  renderRecords();
-  closeModal();
+  const existingId = recordId.value, previous = records.find(r => r.id === existingId), now = new Date().toISOString();
+  const record = { id: existingId || createId(), patientName: patientName.value.trim(), rank: rank.value.trim(), serviceNumber: serviceNumber.value.trim(), unit: unit.value.trim(), dateOfBirth: dateOfBirth.value, bloodGroup: bloodGroup.value, encounterDate: encounterDate.value, medicalCategory: medicalCategory.value.trim(), presentingComplaint: presentingComplaint.value.trim(), symptoms: symptoms.value.trim(), medicalHistory: medicalHistory.value.trim(), allergies: allergies.value.trim(), currentMedications: currentMedications.value.trim(), temperature: temperature.value.trim(), heartRate: heartRate.value.trim(), bloodPressure: bloodPressure.value.trim(), respiratoryRate: respiratoryRate.value.trim(), oxygenSaturation: oxygenSaturation.value.trim(), painScore: painScore.value.trim(), clinicalAssessment: clinicalAssessment.value.trim(), clinicalNotes: clinicalNotes.value.trim(), recommendedTreatment: recommendedTreatment.value.trim(), createdAt: previous?.createdAt || now, updatedAt: now };
+  if (!record.patientName || !record.rank) return alert("Please enter at least Name and Rank.");
+  records = existingId ? records.map(r => r.id === existingId ? record : r) : [...records, record];
+  saveRecords(); renderRecords(); closeModal();
 });
 
-/* Roblox roleplay treatment advice */
-generateTreatmentBtn.addEventListener("click", () => {
-  recommendedTreatment.value = generateRoleplayTreatmentAdvice();
-});
+generateTreatmentBtn.addEventListener("click", () => { recommendedTreatment.value = generateRoleplayTreatmentAdvice(); });
+function generateRoleplayTreatmentAdvice(){
+  const complaint = presentingComplaint.value.trim() || "Not recorded", symptomText = symptoms.value.trim() || "Not recorded", historyText = medicalHistory.value.trim() || "Not recorded", allergyText = allergies.value.trim() || "Not recorded", assessmentText = clinicalAssessment.value.trim() || "Not recorded";
+  const lower = `${complaint} ${symptomText} ${assessmentText}`.toLowerCase();
+  let a = "RAMC ROBLOX ROLEPLAY TREATMENT ADVICE\n=====================================\n\nFor Roblox roleplay use only. Not real medical advice.\n\nPATIENT SUMMARY\n---------------\n";
+  a += `Complaint: ${complaint}\nSymptoms: ${symptomText}\nMedical history: ${historyText}\nAllergies: ${allergyText}\nAssessment: ${assessmentText}\n\nSUGGESTED ROLEPLAY ACTIONS\n--------------------------\n`;
+  if (lower.includes("gunshot") || lower.includes("gsw") || lower.includes("bleeding")) a += "• Apply field dressing and direct pressure.\n• Check airway, breathing and circulation.\n• Prepare casualty for urgent evacuation.\n• Record blood loss and treatment given.\n";
+  else if (lower.includes("fracture") || lower.includes("broken") || lower.includes("sprain")) a += "• Immobilise the injured area.\n• Apply splint for roleplay.\n• Check circulation beyond injury.\n• Send to medical post for review.\n";
+  else if (lower.includes("burn")) a += "• Cool the burn area in roleplay.\n• Cover with sterile dressing.\n• Do not remove stuck clothing.\n• Escalate if severe.\n";
+  else if (lower.includes("head") || lower.includes("concussion")) a += "• Check consciousness level.\n• Monitor for confusion or worsening symptoms.\n• Keep under observation.\n• Refer to senior medic.\n";
+  else if (lower.includes("heat") || lower.includes("dehydration")) a += "• Move patient to shade.\n• Remove excess kit.\n• Give fictional fluids if allowed by group rules.\n• Monitor condition.\n";
+  else if (lower.includes("chest pain") || lower.includes("breathing")) a += "• Sit patient upright if comfortable.\n• Keep patient calm and still.\n• Request urgent senior medical support.\n";
+  else a += "• Complete primary survey: airway, breathing, circulation.\n• Record observations.\n• Treat visible injuries.\n• Keep patient comfortable.\n• Refer to medical officer if needed.\n";
+  a += "\nROLEPLAY MEDICATION NOTE\n------------------------\n• Medication should only be roleplayed if your Roblox group allows it.\n• Check recorded allergies before fictional treatment.\n• Do not use real-world dosages.\n• Document any fictional treatment given.\n\nRECOMMENDED ROLEPLAY DISPOSITION\n--------------------------------\n• Minor: treat and return to duty.\n• Moderate: hold at medical post.\n• Severe: evacuate to field hospital or senior medic.\n";
+  return a;
+}
 
-function generateRoleplayTreatmentAdvice() {
-  const complaint = presentingComplaint.value.trim() || "Not recorded";
-  const symptomText = symptoms.value.trim() || "Not recorded";
-  const historyText = medicalHistory.value.trim() || "Not recorded";
-  const allergyText = allergies.value.trim() || "Not recorded";
-  const assessmentText = clinicalAssessment.value.trim() || "Not recorded";
-
-  const lowerText = `${complaint} ${symptomText} ${assessmentText}`.toLowerCase();
-
-  let advice = "RAMC ROBLOX ROLEPLAY TREATMENT ADVICE\n";
-  advice += "=====================================\n\n";
-  advice += "For Roblox roleplay use only. Not real medical advice.\n\n";
-
-  advice += "PATIENT SUMMARY\n";
-  advice += "---------------\n";
-  advice += `Complaint: ${complaint}\n`;
-  advice += `Symptoms: ${symptomText}\n`;
-  advice += `Medical history: ${historyText}\n`;
-  advice += `Allergies: ${allergyText}\n`;
-  advice += `Assessment: ${assessmentText}\n\n`;
-
-  advice += "SUGGESTED ROLEPLAY ACTIONS\n";
-  advice += "--------------------------\n";
-
-  if (
-    lowerText.includes("gunshot") ||
-    lowerText.includes("gsw") ||
-    lowerText.includes("bleeding")
-  ) {
-    advice += "• Apply field dressing and direct pressure.\n";
-    advice += "• Check airway, breathing and circulation.\n";
-    advice += "• Prepare casualty for urgent evacuation.\n";
-    advice += "• Record blood loss and treatment given.\n";
-  } else if (
-    lowerText.includes("fracture") ||
-    lowerText.includes("broken") ||
-    lowerText.includes("sprain")
-  ) {
-    advice += "• Immobilise the injured area.\n";
-    advice += "• Apply splint for roleplay.\n";
-    advice += "• Check circulation beyond injury.\n";
-    advice += "• Send to medical post for review.\n";
-  } else if (lowerText.includes("burn")) {
-    advice += "• Cool the burn area in roleplay.\n";
-    advice += "• Cover with sterile dressing.\n";
-    advice += "• Do not remove stuck clothing.\n";
-    advice += "• Escalate if severe.\n";
-  } else if (
-    lowerText.includes("head") ||
-    lowerText.includes("concussion")
-  ) {
-    advice += "• Check consciousness level.\n";
-    advice += "• Monitor for confusion or worsening symptoms.\n";
-    advice += "• Keep under observation.\n";
-    advice += "• Refer to senior medic.\n";
-  } else if (
-    lowerText.includes("heat") ||
-    lowerText.includes("dehydration")
-  ) {
-    advice += "• Move patient to shade.\n";
-    advice += "• Remove excess kit.\n";
-    advice += "• Give fictional fluids if allowed by group rules.\n";
-    advice += "• Monitor condition.\n";
-  } else if (
-    lowerText.includes("chest pain") ||
-    lowerText.includes("breathing")
-  ) {
-    advice += "• Sit patient upright if comfortable.\n";
-    advice += "• Keep patient calm and still.\n";
-    advice += "• Request urgent senior medical support.\n";
-  } else {
-    advice += "• Complete primary survey: airway, breathing, circulation.\n";
-    advice += "• Record observations.\n";
-    advice += "• Treat visible injuries.\n";
-    advice += "• Keep patient comfortable.\n";
-    advice += "• Refer to medical officer if needed.\n";
+appointmentsPageBtn.addEventListener("click", async () => { appointmentsPage.classList.toggle("hidden"); await loadAppointments(); });
+async function loadAppointments(){
+  appointmentsList.innerHTML = "<p style='padding:20px;'>Loading appointments...</p>";
+  try {
+    const res = await fetch(APPOINTMENTS_CSV_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("CSV failed");
+    const rows = parseCSV(await res.text()).filter(row => row.some(cell => String(cell).trim() !== ""));
+    if (rows.length <= 1) { appointmentCount.textContent = "(0)"; appointmentsList.innerHTML = "<div class='empty-state'><h3>No appointments found</h3><p>No Google Form responses are currently listed.</p></div>"; return; }
+    const headers = rows[0], bookings = rows.slice(1).filter(row => row.length > 1);
+    appointmentCount.textContent = `(${bookings.length})`; appointmentsList.innerHTML = "";
+    bookings.forEach((row, i) => {
+      const card = document.createElement("article"); card.className = "record-card";
+      card.innerHTML = `<div class="record-main"><div class="record-title-row"><div><h3>${escapeHtml(row[1] || `Appointment ${i + 1}`)}</h3><p class="record-rank">${escapeHtml(row[0] || "No timestamp")}</p></div><span class="record-status">Booking</span></div><div class="record-summary hidden">${headers.map((h, n) => `<p><strong>${escapeHtml(h || `Question ${n + 1}`)}:</strong> ${escapeHtml(row[n] || "")}</p>`).join("")}</div></div><div class="record-actions"><button class="btn btn-secondary open-appointment-btn" type="button">Open</button></div>`;
+      card.querySelector(".open-appointment-btn").addEventListener("click", () => card.querySelector(".record-summary").classList.toggle("hidden"));
+      appointmentsList.appendChild(card);
+    });
+  } catch (err) { console.error(err); appointmentCount.textContent = "(0)"; appointmentsList.innerHTML = "<div class='empty-state'><h3>Could not load appointments</h3><p>Check that the Google Sheet is published as CSV.</p></div>"; }
+}
+function parseCSV(text){
+  const rows=[]; let row=[], value="", quotes=false;
+  for(let i=0;i<text.length;i++){ const c=text[i], next=text[i+1];
+    if(c==='"' && quotes && next==='"'){ value+='"'; i++; } else if(c==='"') quotes=!quotes; else if(c==="," && !quotes){ row.push(value); value=""; } else if((c==="\n"||c==="\r")&&!quotes){ if(c==="\r"&&next==="\n") i++; if(value||row.length){ row.push(value); rows.push(row); row=[]; value=""; } } else value+=c;
   }
-
-  advice += "\nROLEPLAY MEDICATION NOTE\n";
-  advice += "------------------------\n";
-  advice += "• Medication should only be roleplayed if your Roblox group allows it.\n";
-  advice += "• Check recorded allergies before fictional treatment.\n";
-  advice += "• Do not use real-world dosages.\n";
-  advice += "• Document any fictional treatment given.\n\n";
-
-  advice += "RECOMMENDED ROLEPLAY DISPOSITION\n";
-  advice += "--------------------------------\n";
-  advice += "• Minor: treat and return to duty.\n";
-  advice += "• Moderate: hold at medical post.\n";
-  advice += "• Severe: evacuate to field hospital or senior medic.\n";
-
-  return advice;
+  if(value||row.length){ row.push(value); rows.push(row); }
+  return rows;
 }
 
-/* Modal */
-function openModal() {
-  recordModal.classList.remove("hidden");
-  document.body.classList.add("modal-open");
-}
-
-function closeModal() {
-  recordModal.classList.add("hidden");
-  document.body.classList.remove("modal-open");
-  recordForm.reset();
-  recordId.value = "";
-}
-
-closeModalBtn.addEventListener("click", closeModal);
-cancelBtn.addEventListener("click", closeModal);
-
-recordModal.addEventListener("click", (event) => {
-  if (event.target.dataset.closeModal === "true") {
-    closeModal();
-  }
-});
-
-/* Helpers */
-function createId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2);
-}
-
-function setDefaultEncounterDate() {
-  if (encounterDate && !encounterDate.value) {
-    encounterDate.value = new Date().toISOString().slice(0, 10);
-  }
-}
-
-function formatDate(value) {
-  if (!value) return "Not recorded";
-  return new Date(value).toLocaleString();
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+function openModal(){ recordModal.classList.remove("hidden"); document.body.classList.add("modal-open"); }
+function closeModal(){ if(!recordModal) return; recordModal.classList.add("hidden"); document.body.classList.remove("modal-open"); if(recordForm){ recordForm.reset(); recordId.value = ""; } }
+closeModalBtn.addEventListener("click", closeModal); cancelBtn.addEventListener("click", closeModal);
+recordModal.addEventListener("click", e => { if (e.target.dataset.closeModal === "true") closeModal(); });
+function createId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function setDefaultEncounterDate(){ if (encounterDate && !encounterDate.value) encounterDate.value = new Date().toISOString().slice(0,10); }
+function formatDate(v){ return v ? new Date(v).toLocaleString() : "Not recorded"; }
+function escapeHtml(v){ return String(v ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }

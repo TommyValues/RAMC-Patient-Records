@@ -3,561 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <meta
-    name="description"
-    content="RAMC Patient Record System prototype"
-  />
-
   <title>RAMC Patient Record System</title>
-
   <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-
-  <!-- =========================================================
-       LOGIN PAGE
-       This is the first page shown when the website opens.
-  ========================================================== -->
-  <section id="loginPage" class="page login-page">
-
-    <div class="login-shell">
-
-      <div class="login-branding">
-
-        <div class="logo-card">
-          <div class="logo-placeholder">RAMC</div>
-          <span>Royal Army Medical Corps</span>
-        </div>
-
-        <div class="brand-divider"></div>
-
-        <div class="logo-card">
-          <div class="logo-placeholder cavalry">HCav</div>
-          <span>Household Cavalry</span>
-        </div>
-
-      </div>
-
-      <div class="login-card">
-
-        <div class="security-badge">
-          RESTRICTED ACCESS
-        </div>
-
-        <h1>Patient Record System</h1>
-
-        <p class="subtitle">
-          Authorised personnel only
-        </p>
-
-        <form id="loginForm">
-
-          <div class="form-group">
-            <label for="username">Username</label>
-
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autocomplete="username"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="password">Password</label>
-
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-            />
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-full">
-            Sign In
-          </button>
-
-          <p id="loginError" class="error-message" aria-live="polite"></p>
-
-        </form>
-
-        <div class="login-notice">
-          Prototype system. Do not enter real patient information.
-        </div>
-
-      </div>
-
+<section id="loginPage" class="page login-page">
+  <div class="login-shell">
+    <div class="login-branding">
+      <div class="logo-card"><div class="logo-placeholder">RAMC</div><span>Royal Army Medical Corps</span></div>
+      <div class="brand-divider"></div>
+      <div class="logo-card"><div class="logo-placeholder cavalry">HCav</div><span>Household Cavalry</span></div>
     </div>
-
-  </section>
-
-
-  <!-- =========================================================
-       MAIN APPLICATION
-       Hidden until the user logs in.
-  ========================================================== -->
-  <section id="appPage" class="page app-page hidden">
-
-    <header class="topbar">
-
-      <div class="topbar-brand">
-
-        <div class="mini-logo">RAMC</div>
-
-        <div>
-          <h2>Patient Record System</h2>
-          <p>Clinical Records Management</p>
-        </div>
-
-      </div>
-
-      <div class="topbar-actions">
-
-        <span id="loggedInUser" class="user-badge"></span>
-
-        <button id="logoutBtn" class="btn btn-danger">
-          Log Out
-        </button>
-
-      </div>
-
-    </header>
-
-
-    <main class="app-container">
-
-      <!-- Search and actions -->
-      <section class="toolbar">
-
-        <div class="search-wrapper">
-          <input
-            id="searchInput"
-            type="search"
-            placeholder="Search by name, service number, rank, unit..."
-          />
-        </div>
-
-        <button id="newRecordBtn" class="btn btn-primary">
-          + New Medical Record
-        </button>
-
-      </section>
-
-
-      <!-- Dashboard statistics -->
-      <section class="stats-grid">
-
-        <div class="stat-card">
-          <span>Total Records</span>
-          <strong id="totalRecords">0</strong>
-        </div>
-
-        <div class="stat-card">
-          <span>Currently Displayed</span>
-          <strong id="displayedRecords">0</strong>
-        </div>
-
-        <div class="stat-card">
-          <span>System Status</span>
-          <strong class="status-online">Online</strong>
-        </div>
-
-      </section>
-
-
-      <!-- Records list -->
-      <section class="panel">
-
-        <div class="panel-header">
-          <div>
-            <h3>Medical Records</h3>
-            <p>Search, review and edit stored records</p>
-          </div>
-        </div>
-
-        <div id="recordsList" class="records-list"></div>
-
-        <div id="emptyState" class="empty-state hidden">
-          <h3>No records found</h3>
-          <p>Create a new record or change your search.</p>
-        </div>
-
-      </section>
-
-    </main>
-
-  </section>
-
-
-  <!-- =========================================================
-       RECORD MODAL
-  ========================================================== -->
-  <div id="recordModal" class="modal hidden">
-
-    <div class="modal-backdrop" data-close-modal="true"></div>
-
-    <div class="modal-card">
-
-      <div class="modal-header">
-
-        <div>
-          <h2 id="modalTitle">New Medical Record</h2>
-          <p>Clinical record entry</p>
-        </div>
-
-        <button
-          id="closeModalBtn"
-          class="icon-btn"
-          type="button"
-          aria-label="Close"
-        >
-          ×
-        </button>
-
-      </div>
-
-
-      <form id="recordForm">
-
-        <input id="recordId" type="hidden" />
-
-
-        <!-- Personnel -->
-        <div class="form-section">
-
-          <h3>Personnel Information</h3>
-
-          <div class="form-grid">
-
-            <div class="form-group">
-              <label for="patientName">Name *</label>
-              <input id="patientName" required />
-            </div>
-
-            <div class="form-group">
-              <label for="rank">Rank *</label>
-              <input
-                id="rank"
-                placeholder="e.g. Trooper, Corporal, Captain"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="serviceNumber">Service Number</label>
-              <input id="serviceNumber" />
-            </div>
-
-            <div class="form-group">
-              <label for="unit">Unit / Regiment</label>
-              <input id="unit" />
-            </div>
-
-            <div class="form-group">
-              <label for="dateOfBirth">Date of Birth</label>
-              <input id="dateOfBirth" type="date" />
-            </div>
-
-            <div class="form-group">
-              <label for="bloodGroup">Blood Group</label>
-
-              <select id="bloodGroup">
-                <option value="">Select</option>
-                <option>O+</option>
-                <option>O-</option>
-                <option>A+</option>
-                <option>A-</option>
-                <option>B+</option>
-                <option>B-</option>
-                <option>AB+</option>
-                <option>AB-</option>
-                <option>Unknown</option>
-              </select>
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- Clinical -->
-        <div class="form-section">
-
-          <h3>Clinical Information</h3>
-
-          <div class="form-grid">
-
-            <div class="form-group">
-              <label for="encounterDate">Encounter Date</label>
-              <input id="encounterDate" type="date" />
-            </div>
-
-            <div class="form-group">
-              <label for="medicalCategory">Medical Category</label>
-              <input
-                id="medicalCategory"
-                placeholder="Optional"
-              />
-            </div>
-
-          </div>
-
-
-          <div class="form-group">
-            <label for="presentingComplaint">
-              Presenting Complaint
-            </label>
-
-            <textarea
-              id="presentingComplaint"
-              rows="3"
-              placeholder="Reason for presentation..."
-            ></textarea>
-          </div>
-
-
-          <div class="form-group">
-            <label for="symptoms">
-              Symptoms
-            </label>
-
-            <textarea
-              id="symptoms"
-              rows="4"
-              placeholder="Describe symptoms, onset, duration and severity..."
-            ></textarea>
-          </div>
-
-
-          <div class="form-group">
-            <label for="medicalHistory">
-              Relevant Medical History
-            </label>
-
-            <textarea
-              id="medicalHistory"
-              rows="4"
-              placeholder="Relevant history..."
-            ></textarea>
-          </div>
-
-
-          <div class="form-group">
-            <label for="allergies">
-              Allergies
-            </label>
-
-            <textarea
-              id="allergies"
-              rows="3"
-              placeholder="Medication, food or environmental allergies..."
-            ></textarea>
-          </div>
-
-
-          <div class="form-group">
-            <label for="currentMedications">
-              Current Medications
-            </label>
-
-            <textarea
-              id="currentMedications"
-              rows="3"
-              placeholder="Current medicines and doses if known..."
-            ></textarea>
-          </div>
-
-        </div>
-
-
-        <!-- Observations -->
-        <div class="form-section">
-
-          <h3>Observations</h3>
-
-          <div class="form-grid form-grid-3">
-
-            <div class="form-group">
-              <label for="temperature">
-                Temperature °C
-              </label>
-              <input
-                id="temperature"
-                type="number"
-                step="0.1"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="heartRate">
-                Heart Rate
-              </label>
-              <input
-                id="heartRate"
-                type="number"
-                placeholder="bpm"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="bloodPressure">
-                Blood Pressure
-              </label>
-              <input
-                id="bloodPressure"
-                placeholder="e.g. 120/80"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="respiratoryRate">
-                Respiratory Rate
-              </label>
-              <input
-                id="respiratoryRate"
-                type="number"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="oxygenSaturation">
-                SpO₂ %
-              </label>
-              <input
-                id="oxygenSaturation"
-                type="number"
-                min="0"
-                max="100"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="painScore">
-                Pain Score 0–10
-              </label>
-              <input
-                id="painScore"
-                type="number"
-                min="0"
-                max="10"
-              />
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- Assessment -->
-        <div class="form-section">
-
-          <h3>Assessment and Notes</h3>
-
-          <div class="form-group">
-            <label for="clinicalAssessment">
-              Clinical Assessment
-            </label>
-
-            <textarea
-              id="clinicalAssessment"
-              rows="4"
-              placeholder="Working assessment, differential considerations..."
-            ></textarea>
-          </div>
-
-
-          <div class="form-group">
-            <label for="clinicalNotes">
-              Clinical Notes
-            </label>
-
-            <textarea
-              id="clinicalNotes"
-              rows="5"
-              placeholder="Additional notes..."
-            ></textarea>
-          </div>
-
-        </div>
-
-
-        <!-- AI support -->
-        <div class="form-section ai-section">
-
-          <div class="ai-heading">
-
-            <div>
-              <h3>Recommended Treatment Support</h3>
-              <p>
-                Generates a non-prescriptive clinical review draft.
-              </p>
-            </div>
-
-            <button
-              id="generateTreatmentBtn"
-              type="button"
-              class="btn btn-secondary"
-            >
-              Generate Support Draft
-            </button>
-
-          </div>
-
-
-          <div class="clinical-warning">
-            Decision-support only. A qualified clinician must independently
-            assess the patient, verify contraindications, allergies,
-            interactions and local policy before treatment.
-          </div>
-
-
-          <div class="form-group">
-            <label for="recommendedTreatment">
-              Recommended Treatment / Clinical Support Draft
-            </label>
-
-            <textarea
-              id="recommendedTreatment"
-              rows="10"
-              placeholder="Generated support draft will appear here..."
-            ></textarea>
-          </div>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-          <button
-            id="cancelBtn"
-            type="button"
-            class="btn btn-secondary"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            class="btn btn-primary"
-          >
-            Save Medical Record
-          </button>
-
-        </div>
-
+    <div class="login-card">
+      <div class="security-badge">RESTRICTED ACCESS</div>
+      <h1>Patient Record System</h1>
+      <p class="subtitle">Authorised personnel only</p>
+      <form id="loginForm">
+        <div class="form-group"><label for="username">Username</label><input id="username" name="username" type="text" autocomplete="username" required /></div>
+        <div class="form-group"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required /></div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        <p id="loginError" class="error-message" aria-live="polite"></p>
       </form>
-
+      <div class="login-notice">Roblox roleplay system. Do not enter real patient information.</div>
     </div>
-
   </div>
+</section>
 
+<section id="appPage" class="page app-page hidden">
+  <header class="topbar">
+    <div class="topbar-brand"><div class="mini-logo">RAMC</div><div><h2>Patient Record System</h2><p>Clinical Records Management</p></div></div>
+    <div class="topbar-actions"><span id="loggedInUser" class="user-badge"></span><button id="logoutBtn" class="btn btn-danger">Log Out</button></div>
+  </header>
+  <main class="app-container">
+    <section class="toolbar">
+      <div class="search-wrapper"><input id="searchInput" type="search" placeholder="Search by name, service number, rank, unit..." /></div>
+      <button id="appointmentsPageBtn" class="btn btn-secondary">Appointment Bookings <span id="appointmentCount">(0)</span></button>
+      <button id="newRecordBtn" class="btn btn-primary">+ New Medical Record</button>
+    </section>
+    <section class="stats-grid">
+      <div class="stat-card"><span>Total Records</span><strong id="totalRecords">0</strong></div>
+      <div class="stat-card"><span>Currently Displayed</span><strong id="displayedRecords">0</strong></div>
+      <div class="stat-card"><span>System Status</span><strong class="status-online">Online</strong></div>
+    </section>
+    <section id="recordsPage" class="panel">
+      <div class="panel-header"><div><h3>Medical Records</h3><p>Search, review and edit stored records</p></div></div>
+      <div id="recordsList" class="records-list"></div>
+      <div id="emptyState" class="empty-state hidden"><h3>No records found</h3><p>Create a new record or change your search.</p></div>
+    </section>
+    <section id="appointmentsPage" class="panel hidden" style="margin-top:22px;">
+      <div class="panel-header"><div><h3>Appointment Bookings</h3><p>Google Forms appointment responses. Click Open to view a response.</p></div></div>
+      <div id="appointmentsList" class="records-list"></div>
+    </section>
+  </main>
+</section>
 
-  <script src="app.js"></script>
-
+<div id="recordModal" class="modal hidden">
+  <div class="modal-backdrop" data-close-modal="true"></div>
+  <div class="modal-card">
+    <div class="modal-header"><div><h2 id="modalTitle">New Medical Record</h2><p>Clinical record entry</p></div><button id="closeModalBtn" class="icon-btn" type="button">×</button></div>
+    <form id="recordForm">
+      <input id="recordId" type="hidden" />
+      <div class="form-section"><h3>Personnel Information</h3><div class="form-grid">
+        <div class="form-group"><label for="patientName">Name *</label><input id="patientName" required /></div>
+        <div class="form-group"><label for="rank">Rank *</label><input id="rank" required /></div>
+        <div class="form-group"><label for="serviceNumber">Service Number</label><input id="serviceNumber" /></div>
+        <div class="form-group"><label for="unit">Unit / Regiment</label><input id="unit" /></div>
+        <div class="form-group"><label for="dateOfBirth">Date of Birth</label><input id="dateOfBirth" type="date" /></div>
+        <div class="form-group"><label for="bloodGroup">Blood Group</label><select id="bloodGroup"><option value="">Select</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>Unknown</option></select></div>
+      </div></div>
+      <div class="form-section"><h3>Clinical Information</h3><div class="form-grid">
+        <div class="form-group"><label for="encounterDate">Encounter Date</label><input id="encounterDate" type="date" /></div>
+        <div class="form-group"><label for="medicalCategory">Medical Category</label><input id="medicalCategory" /></div>
+      </div>
+        <div class="form-group"><label for="presentingComplaint">Presenting Complaint</label><textarea id="presentingComplaint" rows="3"></textarea></div>
+        <div class="form-group"><label for="symptoms">Symptoms</label><textarea id="symptoms" rows="4"></textarea></div>
+        <div class="form-group"><label for="medicalHistory">Relevant Medical History</label><textarea id="medicalHistory" rows="4"></textarea></div>
+        <div class="form-group"><label for="allergies">Allergies</label><textarea id="allergies" rows="3"></textarea></div>
+        <div class="form-group"><label for="currentMedications">Current Medications</label><textarea id="currentMedications" rows="3"></textarea></div>
+      </div>
+      <div class="form-section"><h3>Observations</h3><div class="form-grid form-grid-3">
+        <div class="form-group"><label for="temperature">Temperature °C</label><input id="temperature" type="number" step="0.1" /></div>
+        <div class="form-group"><label for="heartRate">Heart Rate</label><input id="heartRate" type="number" /></div>
+        <div class="form-group"><label for="bloodPressure">Blood Pressure</label><input id="bloodPressure" /></div>
+        <div class="form-group"><label for="respiratoryRate">Respiratory Rate</label><input id="respiratoryRate" type="number" /></div>
+        <div class="form-group"><label for="oxygenSaturation">SpO₂ %</label><input id="oxygenSaturation" type="number" /></div>
+        <div class="form-group"><label for="painScore">Pain Score 0–10</label><input id="painScore" type="number" /></div>
+      </div></div>
+      <div class="form-section"><h3>Assessment and Notes</h3>
+        <div class="form-group"><label for="clinicalAssessment">Clinical Assessment</label><textarea id="clinicalAssessment" rows="4"></textarea></div>
+        <div class="form-group"><label for="clinicalNotes">Clinical Notes</label><textarea id="clinicalNotes" rows="5"></textarea></div>
+      </div>
+      <div class="form-section ai-section"><div class="ai-heading"><div><h3>Recommended Treatment Support</h3><p>Roblox roleplay advice only.</p></div><button id="generateTreatmentBtn" type="button" class="btn btn-secondary">Generate Roleplay Advice</button></div>
+        <div class="clinical-warning">Roblox roleplay only. This does not provide real medical advice.</div>
+        <div class="form-group"><label for="recommendedTreatment">Recommended Treatment / Roleplay Advice</label><textarea id="recommendedTreatment" rows="10"></textarea></div>
+      </div>
+      <div class="modal-actions"><button id="cancelBtn" type="button" class="btn btn-secondary">Cancel</button><button type="submit" class="btn btn-primary">Save Medical Record</button></div>
+    </form>
+  </div>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
